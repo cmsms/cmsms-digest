@@ -23,7 +23,7 @@
 
         public function GetVersion()
         {
-            return '0.1.0';
+            return '0.1.2';
         }
 
         public function GetAuthor()
@@ -142,6 +142,7 @@
     params C(255),
     template C(255)
     ';
+            $taboptarray = array();
             $sqlarray = $dict->CreateTableSQL(cms_db_prefix() . "module_digest_subscriptions",
                 $flds,
                 $taboptarray);
@@ -200,7 +201,7 @@
 
 
             // Permission
-            $this->CreatePermission('Use NotificationTool');
+            $this->CreatePermission('Use NotificationTool', 'Use NotificationTool');
 
             $this->Audit(0,
                 $this->Lang('friendlyname'),
@@ -275,9 +276,9 @@
                     foreach ($datas['subscribers'] as $subscriber) {
 
                         $subscriber_content = array();
-                        foreach ($subscriber['subscriptions'] as $subscription) {
-                            if (isset($content[$subscription])) {
-                                $subscriber_content[$subscription] = $content[$subscription];
+                        foreach ($subscriber['subscriptions'] as $subscription_id) {
+                            if (isset($content[$subscription_id])) {
+                                $subscriber_content[$subscription_id] = $content[$subscription_id];
                             }
                         }
 

@@ -31,6 +31,9 @@ $lang = array(
 // Divers
 'Select one' => 'Select one',
 	
-'help' => 'To write',
+'help' => '
+<h3>Help</h3>
+<p>On the frontend, you can use the tag {Digest} to show the user\'s notifications preferences.</p>
+',
 
 );
