@@ -223,6 +223,8 @@ class DLog
 			$query .= ' LIMIT '. (int)$params['limit'];
 		}
 
+//      var_dump($query);
+
     $dbresult = $db->Execute($query, $values);
 
     $items = array();
@@ -261,7 +263,7 @@ class DLog
 
     public static function getLatestLog()
 	{
-	  return self::doSelectOne(array('order_by' => 'timestamp DESC'));
+	  return self::doSelectOne(array('order_by' => 'timestamp DESC', 'where_adv' => array('period' => array('DEMO%', 'NOT LIKE')) ));
 	}
 
 

@@ -16,6 +16,9 @@
         protected $id;
         protected $vars = array();
         protected $is_modified;
+        protected $subscription; // UNIQUE
+        protected $subscriptions;
+        protected $user;
 
         protected static $fields = array(
             'user_id'         => array('name' => 'user_id', 'ado' => 'I'),
@@ -79,6 +82,108 @@
             }
         }
 
+        public function getSubscription()
+        {
+            if(empty($this->subscription)) $this->subscription = DSubscription::retrieveByPk($this->subscription_id);
+            return $this->subscription;
+        }
+
+        public function getSubscriptions($period = null)
+        {
+            if(empty($this->subscriptions)) $this->subscriptions = $this->retrieveSubscriptions();
+            if(isset($period)) if(isset($this->subscriptions[$period])) return $this->subscriptions[$period];
+
+            $subscriptions = array();
+            foreach($this->subscriptions as $subs)
+            {
+                if(is_array($subs))
+                {
+                    $subscriptions += $subs;
+                }
+            }
+            return $subscriptions;
+        }
+
+        private function retrieveSubscriptions($period = null)
+        {
+            $where = array();
+            if(!is_null($period)) $where['period'] = $period;
+            $subscriber = self::doSelect(array('where' => $where));
+            $subscribtions = array();
+            foreach($subscriber as $subscription)
+            {
+                $subscribtions[$subscription->period][$subscription->subscription_id] = $subscription->getSubscription();
+            }
+            return $subscribtions;
+        }
+
+        public function injectSubscription(DSubscription $subscription, $period)
+        {
+            $this->subscriptions[$period][$subscription->getId()] = $subscription;
+        }
+
+        public function hasContent($period = null)
+        {
+            $has_content = false;
+            foreach($this->subscriptions as $subscription_period => $subscriptions)
+            {
+                if(is_null($period) || ($period == $subscription_period))
+                {
+                    foreach($subscriptions as $subscription)
+                    {
+                        if($subscription->hasContent())
+                        {
+                            $has_content = true;
+                        }
+                    }
+                }
+            }
+            return $has_content;
+        }
+
+        public function getContent($period = null)
+        {
+            $content = array();
+
+            foreach($this->subscriptions as $subscription_period => $subscriptions)
+            {
+                if(is_null($period) || ($period == $subscription_period))
+                {
+                    foreach($subscriptions as $subscription)
+                    {
+                        /** @var $subscription DSubscription */
+                        if($subscription->hasContent($period))
+                        {
+                            $content[$subscription->getId()]['title'] = $subscription->title;
+                            $content[$subscription->getId()]['module_name'] = $subscription->module_name;
+                            $content[$subscription->getId()]['announces'] = $subscription->getAnnounces($period);
+                            $content[$subscription->getId()]['content'] = $subscription->getContent($period);
+                        }
+                    }
+                }
+            }
+
+            return $content;
+        }
+
+        /**
+         * @return CMSUser|null
+         */
+        public function getUser()
+        {
+            if(empty($this->user)) $this->user = CMSUser::retrieveByPk($this->user_id);
+            return $this->user;
+        }
+
+        public function setUser(CMSUser $user)
+        {
+            $this->user = $user;
+            if($user->getId() != '')
+            {
+                $this->user_id = $user->getId();
+            }
+        }
+
         public function PopulateFromDb($row)
         {
             $this->id = $row['id'];
@@ -86,7 +191,6 @@
                 $this->vars[$field['name']] = $row[$field['name']];
             }
         }
-
 
         public function save()
         {
@@ -258,11 +362,6 @@
             return $array;
         }
 
-        public function getSubscription()
-        {
-            return DSubscription::retrieveByPk($this->subscription_id);
-        }
-
         public static function getSubscriptionsForUser($user_id)
         {
             $selection     = self::doSelect(array(
@@ -295,10 +394,7 @@
             }
         }
 
-        public function getUser()
-        {
-            return CMSUser::retrieveByPk($this->user_id);
-        }
+
 
         public static function getSubscriptionsByUsers($query_params = array())
         {
@@ -324,6 +420,7 @@
          * @param $period
          *
          * @return array|null
+         * @deprecated
          */
 
         public static function getDatasForPeriod($period)
@@ -336,7 +433,6 @@
                 ));
 
                 $subscribers = array();
-
                 $subscriptions = array();
 
                 foreach ($entries as $entry) {
@@ -349,7 +445,6 @@
                 }
 
                 return array('subscribers' => $subscribers, 'subscriptions' => $subscriptions);
-
             }
 
             return NULL;
@@ -411,6 +506,9 @@
             ) {
                 $periods[] = 'Monthly';
             }
+
+            $periods[] = 'Monthly';
+
 
             return $periods;
         }

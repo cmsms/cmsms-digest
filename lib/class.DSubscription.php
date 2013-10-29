@@ -17,6 +17,8 @@ class DSubscription
     protected $vars = array();
     protected $is_modified;
 
+    protected $content;
+
     protected static $fields = array(
         'title' => array('name' => 'title', 'ado' => 'C(255)'),
         'module_name' => array('name' => 'module_name', 'ado' => 'C(255)'),
@@ -252,7 +254,7 @@ class DSubscription
         return DSubscriber::getTimeForPeriod($period);
     }
 
-    public function getParamsAsArray()
+    public function getgetParamsAsArray()
     {
         $params = array();
 
@@ -275,7 +277,7 @@ class DSubscription
      * @return bool
      */
 
-    public function haveContent($period)
+    public function hasContent($period)
     {
         $content = $this->getContent($period);
         $content .= $this->getAnnounces($period);
@@ -283,9 +285,19 @@ class DSubscription
         return (bool)strlen($content);
     }
 
+    /**
+     * @param $period
+     * @return bool
+     * @deprecated
+     */
+    public function haveContent($period)
+    {
+        return $this->hasContent($period);
+    }
+
     public function getContent($period)
     {
-        if (!$this->content) {
+        if (empty($this->content)) {
             // echo 'Fetch content for ' . $this->module_name.'<br/>';
             $module = cms_utils::get_module($this->module_name);
             $params = $this->getParamsAsArray();
