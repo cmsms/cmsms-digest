@@ -254,7 +254,7 @@ class DSubscription
         return DSubscriber::getTimeForPeriod($period);
     }
 
-    public function getgetParamsAsArray()
+    public function getParamsAsArray()
     {
         $params = array();
 
@@ -277,10 +277,10 @@ class DSubscription
      * @return bool
      */
 
-    public function hasContent($period)
+    public function hasContent($timestamp = null)
     {
-        $content = $this->getContent($period);
-        $content .= $this->getAnnounces($period);
+        $content = $this->getContent($timestamp);
+        $content .= $this->getAnnounces($timestamp);
 
         return (bool)strlen($content);
     }
@@ -290,25 +290,25 @@ class DSubscription
      * @return bool
      * @deprecated
      */
-    public function haveContent($period)
+    private function haveContent($timestamp)
     {
-        return $this->hasContent($period);
+        return $this->hasContent($timestamp);
     }
 
-    public function getContent($period)
+    public function getContent($timestamp = null)
     {
         if (empty($this->content)) {
             // echo 'Fetch content for ' . $this->module_name.'<br/>';
             $module = cms_utils::get_module($this->module_name);
             $params = $this->getParamsAsArray();
             $params['template'] = $this->template;
-            $this->content = $module->Digest(DSubscriber::getTimeForPeriod($period), $params);
+            $this->content = $module->Digest($timestamp, $params);
         }
 
         return $this->content;
     }
 
-    public function getAnnounces($period)
+    public function getAnnounces($timestamp)
     {
         // TODO: Implement get Announces
 

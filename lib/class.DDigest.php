@@ -8,11 +8,32 @@ class DDigest
     protected $subscriptions;
 
     protected $demo = false;
+    protected $demo_time;
 
     public function __construct($period)
     {
         if (in_array($period, DSubscriber::$periods)) {
             $this->period = $period;
+        }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPeriod()
+    {
+        return $this->period;
+    }
+
+    public function getPeriodTimestamp()
+    {
+        if(!empty($this->demo_time))
+        {
+            return $this->demo_time;
+        }
+        else
+        {
+            return DSubscriber::getTimeForPeriod($this->getPeriod());
         }
     }
 
@@ -72,7 +93,7 @@ class DDigest
     {
         foreach ($this->subscriptions as &$subscription) {
             /** @var DSubscription $subscription */
-            $subscription->getContent($this->period);
+            $subscription->getContent($this->getPeriodTimestamp());
         }
     }
 
@@ -93,7 +114,7 @@ class DDigest
             if ($subscriber->hasContent($this->period)) {
                 $cmsmailer->reset();
 
-                $digest->smarty->assign('modules', $subscriber->getContent($this->period));
+                $digest->smarty->assign('modules', $subscriber->getContent($this->getPeriod(), $this->getPeriodTimestamp()));
                 $digest->smarty->assign('period', $this->period);
                 $template = $digest->getPreference('email_template');
 
@@ -119,16 +140,12 @@ class DDigest
             }
         }
 
-        if(count($sent_subscribers))
-        {
+        if (count($sent_subscribers)) {
             $log = new DLog();
             $log->title = $subject;
-            if($this->demo)
-            {
+            if ($this->demo) {
                 $log->period = 'DEMO ' . $this->period;
-            }
-            else
-            {
+            } else {
                 $log->period = $this->period;
             }
 
@@ -138,8 +155,7 @@ class DDigest
 =============================================
 
 ";
-            foreach($sent_subscribers as $subscriber)
-            {
+            foreach ($sent_subscribers as $subscriber) {
                 $log_detail .= $subscriber->getUser()->email . "\n";
             }
 
@@ -148,8 +164,7 @@ class DDigest
             $log->details = $log_detail;
             $log->save();
 
-            if($this->demo)
-            {
+            if ($this->demo) {
                 echo '<pre>';
                 echo $log_detail;
                 echo '</pre>';
@@ -162,5 +177,14 @@ class DDigest
     {
         $this->demo = true;
     }
+
+    /**
+     * @param integer $demo_time
+     */
+    public function setDemoTime($demo_time)
+    {
+        $this->demo_time = $demo_time;
+    }
+
 
 }

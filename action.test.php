@@ -9,6 +9,7 @@
     $form->setButtons(array('submit'));
     $form->setLabel('submit', 'Send');
     $form->setWidget('period', 'select', array('values' => DSubscriber::$periods));
+    $form->setWidget('date', 'date', array('value' => date('Y-m-d'), 'label' => 'Date'));
 
     echo $form;
 
@@ -17,6 +18,7 @@
         $period = $params['period'];
         $digest = new DDigest($period);
         $digest->demo();
+        $digest->setDemoTime(strtotime($form->getWidget('date')->getValue()));
 
         $user = new CMSUser();
         $user->email = $this->GetPreference('demo_email');

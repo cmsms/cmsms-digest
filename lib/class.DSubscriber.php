@@ -122,16 +122,19 @@
             $this->subscriptions[$period][$subscription->getId()] = $subscription;
         }
 
-        public function hasContent($period = null)
+        public function hasContent($period)
         {
             $has_content = false;
+            $timestamp = DSubscriber::getTimeForPeriod($period);
+
             foreach($this->subscriptions as $subscription_period => $subscriptions)
             {
-                if(is_null($period) || ($period == $subscription_period))
+                if($period == $subscription_period)
                 {
                     foreach($subscriptions as $subscription)
                     {
-                        if($subscription->hasContent())
+                        /** @var $subscription DSubscription */
+                        if($subscription->hasContent($timestamp))
                         {
                             $has_content = true;
                         }
@@ -141,23 +144,24 @@
             return $has_content;
         }
 
-        public function getContent($period = null)
+        public function getContent($period, $timestamp = null)
         {
             $content = array();
+            if(empty($timestamp)) $timestamp = DSubscriber::getTimeForPeriod($period);
 
             foreach($this->subscriptions as $subscription_period => $subscriptions)
             {
-                if(is_null($period) || ($period == $subscription_period))
+                if($period == $subscription_period)
                 {
                     foreach($subscriptions as $subscription)
                     {
                         /** @var $subscription DSubscription */
-                        if($subscription->hasContent($period))
+                        if($subscription->hasContent($timestamp))
                         {
                             $content[$subscription->getId()]['title'] = $subscription->title;
                             $content[$subscription->getId()]['module_name'] = $subscription->module_name;
-                            $content[$subscription->getId()]['announces'] = $subscription->getAnnounces($period);
-                            $content[$subscription->getId()]['content'] = $subscription->getContent($period);
+                            $content[$subscription->getId()]['announces'] = $subscription->getAnnounces($timestamp);
+                            $content[$subscription->getId()]['content'] = $subscription->getContent($timestamp);
                         }
                     }
                 }
@@ -506,9 +510,6 @@
             ) {
                 $periods[] = 'Monthly';
             }
-
-            $periods[] = 'Monthly';
-
 
             return $periods;
         }

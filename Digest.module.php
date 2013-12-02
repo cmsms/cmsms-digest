@@ -21,7 +21,7 @@ class Digest extends CMSModule
 
     public function GetVersion()
     {
-        return '0.9.0';
+        return '0.9.6';
     }
 
     public function GetAuthor()
