@@ -21,7 +21,7 @@ class Digest extends CMSModule
 
     public function GetVersion()
     {
-        return '0.9.6';
+        return '0.10.0';
     }
 
     public function GetAuthor()
@@ -103,11 +103,11 @@ class Digest extends CMSModule
     {
         if ($eventname == 'CronHourly') {
             // Do desired action here
-            if ($this->GetPreference('send_emails') == 1) {
+            if ($this->GetPreference('send_emails', false) == 1) {
                 $this->Audit(0, $this->Lang('friendlyname'), 'Sending email fired');
                 $this->sendAll();
             } else {
-                $this->Audit(0, $this->Lang('friendlyname'), 'Sending email not fired');
+                $this->Audit(0, $this->Lang('friendlyname' ), 'Sending email not fired');
             }
         }
     }
@@ -279,16 +279,28 @@ class Digest extends CMSModule
 
     private function sendable()
     {
+        $time = $this->GetPreference('send_at', '0:0:0');
 
-        if (time() < strtotime($this->GetPreference('send_at'))) {
+        $now = new DateTime();
+
+        $start = new DateTime();
+        $start->setTimestamp(strtotime($time));
+
+        $end = clone $start;
+        $end->add(new DateInterval('PT1H'));
+
+        if (($now < $start) || ($now > $end) ) {
             echo '<p><em>Darth Vader:</em> The force is with you, young Skywalker, but you are not a Jedi yet.</p>';
 
             return false;
         }
+
         $latest = DLog::getLatestLog();
 
-        $limit = strtotime('-23 hours');
-        if ($latest->timestamp > $limit) {
+        $limit = new DateTime();
+        $limit->setTimestamp(strtotime(strtotime('-23 hours')));
+
+        if ($latest->getDateTime() > $limit) {
             echo '<p><em>Yoda:</em> Too early another mail to send</p>';
 
             return false;

@@ -488,7 +488,7 @@
                 case 'Centennially':
                     return strtotime('-100 year');  // Yeah, yeah, just in case of. It wont work until 2070 though...
                 default:
-                    return strtotime('+1 year');    // We should not be here. In case of, we'll give tomorrow date. TCP over time do not exists... yet.
+                    return strtotime('+1 year');    // We should not be here. In case of, we'll give one year in the future's date. TCP over time do not exists... yet.
             }
         }
 

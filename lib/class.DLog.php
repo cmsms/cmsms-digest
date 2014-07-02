@@ -266,7 +266,11 @@ class DLog
 	  return self::doSelectOne(array('order_by' => 'timestamp DESC', 'where_adv' => array('period' => array('DEMO%', 'NOT LIKE')) ));
 	}
 
-
+    public function getDateTime()
+    {
+        $start = new DateTime();
+        $start->setTimestamp(strtotime($this->timestamp));
+    }
 
 	
 }
